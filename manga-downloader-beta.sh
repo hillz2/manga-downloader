@@ -39,10 +39,19 @@ if uname -a | grep AngelBeats; then
 			echo "Manga cannot be found"
 			exit
 		else
+			if [ ! -d "$manga" ]; then
+				mkdir "$manga"
+			fi
+			cd "$manga"
 			echo "Downloading from mangapark.me"
+			curl --socks5-hostname 192.168.1.1:1095 http://mangapark.me/manga/kuzu-no-honkai | grep -E "/manga/kuzu-no-honkai.*>all<" | cut -d '"' -f2 > chapterlist.txt
 			source="mangapark.me"
 		fi
 	else
+		if [ ! -d "$manga" ]; then
+			mkdir "$manga"
+		fi
+		cd "$manga"
 		echo "Downloading from mangareader.net"
 		source="mangareader.net"
 	fi
@@ -52,37 +61,49 @@ else
 			echo "Manga cannot be found"
 			exit
 		else
+			if [ ! -d "$manga" ]; then
+				mkdir "$manga"
+			fi
+			cd "$manga"
 			echo "Downloading from mangapark.me"
 			source="mangapark.me"
 		fi
 	else
+		if [ ! -d "$manga" ]; then
+			mkdir "$manga"
+		fi
+		cd "$manga"
 		echo "Downloading from mangareader.net"
 		source="mangareader.net"
 	fi
 fi
-if [ ! -d "$manga" ]; then
-	mkdir "$manga"
-fi
-cd "$manga"
-if uname -a | grep AngelBeats; then
-	mangareader-openwrt
-else
-	for chap in $(seq $chaps $chape);
-	do
-		mkdir -p ${manga}-${chap}
-		cd ${manga}-${chap}
-		endpage=$(curl -vC - www.mangareader.net/$manga/$chap/1 | grep "<option value=\"" | tail -1 | awk -F "[><]" '{print $3}')
-		imagename=1
-		for startpage in $(seq 1 $endpage); do
-			echo "Downloading page $startpage of $endpage chapter $chap....."
-			imagelink=$(curl -vC - www.mangareader.net/$manga/$chap/$startpage | sed -n 's/.*src="\([^"]*\).*/\1/p' | grep -E "mangareader.*$manga.*jpg")
-			curl -vC - "$imagelink" > "${imagename}.jpg"
-			if [[ $? != 0 ]]; then
-				echo "Error downloading chapter $chap page $startpage: $imagelink" >> ../download-error.txt
-			fi
-			imagename=$((imagename+1))
-		done
-		cd ..
-	done
-	echo "DOWNLOAD SELESAI"
-fi
+case source in
+	"mangareader.net")
+		if uname -a | grep AngelBeats; then
+			mangareader-openwrt
+		else
+			for chap in $(seq $chaps $chape);
+			do
+				mkdir -p ${manga}-${chap}
+				cd ${manga}-${chap}
+				endpage=$(curl -vC - www.mangareader.net/$manga/$chap/1 | grep "<option value=\"" | tail -1 | awk -F "[><]" '{print $3}')
+				imagename=1
+				for startpage in $(seq 1 $endpage); do
+					echo "Downloading page $startpage of $endpage chapter $chap....."
+					imagelink=$(curl -vC - www.mangareader.net/$manga/$chap/$startpage | sed -n 's/.*src="\([^"]*\).*/\1/p' | grep -E "mangareader.*$manga.*jpg")
+					curl -vC - "$imagelink" > "${imagename}.jpg"
+					if [[ $? != 0 ]]; then
+						echo "Error downloading chapter $chap page $startpage: $imagelink" >> ../download-error.txt
+					fi
+					imagename=$((imagename+1))
+				done
+				cd ..
+			done
+			echo "DOWNLOAD SELESAI"
+		fi
+		;;
+	"mangapark.me")
+		for chapter in $(cat chapterlist.txt); do
+			
+		;;
+esac
