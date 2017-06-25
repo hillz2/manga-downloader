@@ -44,7 +44,7 @@ openwrt(){ # THIS IS FOR MY OPENWRT ROUTER
 			imagelink=$(curl -vC - --socks5-hostname 192.168.1.1:1095 www.mangareader.net/$manga/$chap/$startpage | sed -n 's/.*src="\([^"]*\).*/\1/p' | grep -E "mangareader.*$manga.*jpg")
 			curl -vC - --socks5-hostname 192.168.1.1:1095 "$imagelink" > "${imagename}.jpg"
 			if [[ $? != 0 ]]; then
-				echo "Error downloading chapter $chap page $startpage" >> ../download-error.txt
+				echo "Error downloading chapter $chap page $startpage: $imagelink" >> ../download-error.txt
 			fi
 			imagename=$((imagename+1))
 		done
@@ -66,7 +66,7 @@ else
 			imagelink=$(curl -vC - www.mangareader.net/$manga/$chap/$startpage | sed -n 's/.*src="\([^"]*\).*/\1/p' | grep -E "mangareader.*$manga.*jpg")
 			curl -vC - "$imagelink" > "${imagename}.jpg"
 			if [[ $? != 0 ]]; then
-				echo "Error downloading chapter $chap page $startpage" >> ../download-error.txt
+				echo "Error downloading chapter $chap page $startpage: $imagelink" >> ../download-error.txt
 			fi
 			imagename=$((imagename+1))
 		done
